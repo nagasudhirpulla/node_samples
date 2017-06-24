@@ -124,22 +124,68 @@ ON people_details.users_verification
 FOR EACH ROW
 EXECUTE PROCEDURE public.update_modified_column();
 
+
+-- Table: people_details.password_change_requests
+
+-- DROP TABLE people_details.password_change_requests;
+
+CREATE TABLE people_details.password_change_requests
+(
+  id         SERIAL                 NOT NULL,
+  users_id   INTEGER                NOT NULL,
+  token      CHARACTER VARYING(150) NOT NULL,
+  created_at TIME WITH TIME ZONE    NOT NULL DEFAULT now(),
+  updated_at TIME WITH TIME ZONE    NOT NULL DEFAULT now(),
+  expires_at TIME WITH TIME ZONE    NOT NULL DEFAULT (now() + ((24) :: DOUBLE PRECISION * '01:00:00' :: INTERVAL)),
+  CONSTRAINT password_change_requests_pkey PRIMARY KEY (id),
+  CONSTRAINT password_change_requests_users_id_fkey FOREIGN KEY (users_id)
+  REFERENCES people_details.people_details (id) MATCH SIMPLE
+  ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT password_change_requests_users_id_key UNIQUE (users_id)
+)
+WITH (
+OIDS =FALSE
+);
+ALTER TABLE people_details.password_change_requests
+OWNER TO postgres;
+
+-- Index: people_details.password_change_requests_users_id_idx
+
+-- DROP INDEX people_details.password_change_requests_users_id_idx;
+
+CREATE INDEX password_change_requests_users_id_idx
+ON people_details.password_change_requests
+USING BTREE
+(users_id);
+
+
+-- Trigger: update_password_change_requests_updated_time on people_details.password_change_requests
+
+-- DROP TRIGGER update_password_change_requests_updated_time ON people_details.password_change_requests;
+
+CREATE TRIGGER update_password_change_requests_updated_time
+BEFORE UPDATE
+ON people_details.password_change_requests
+FOR EACH ROW
+EXECUTE PROCEDURE public.update_modified_column();
+
+
 -- Table: people_details.server_key_values
 
 -- DROP TABLE people_details.server_key_values;
 
 CREATE TABLE people_details.server_key_values
 (
-  key_str character varying(200) NOT NULL,
-  value_str character varying(200) NOT NULL,
-  id serial NOT NULL,
-  created_at time with time zone NOT NULL DEFAULT now(),
-  updated_at time with time zone NOT NULL DEFAULT now(),
+  key_str    CHARACTER VARYING(200) NOT NULL,
+  value_str  CHARACTER VARYING(200) NOT NULL,
+  id         SERIAL                 NOT NULL,
+  created_at TIME WITH TIME ZONE    NOT NULL DEFAULT now(),
+  updated_at TIME WITH TIME ZONE    NOT NULL DEFAULT now(),
   CONSTRAINT server_key_values_pkey PRIMARY KEY (id),
   CONSTRAINT server_key_values_key_str_value_str_key UNIQUE (key_str, value_str)
 )
 WITH (
-OIDS=FALSE
+OIDS =FALSE
 );
 ALTER TABLE people_details.server_key_values
 OWNER TO postgres;
