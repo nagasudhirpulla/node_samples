@@ -123,3 +123,33 @@ BEFORE UPDATE
 ON people_details.users_verification
 FOR EACH ROW
 EXECUTE PROCEDURE public.update_modified_column();
+
+-- Table: people_details.server_key_values
+
+-- DROP TABLE people_details.server_key_values;
+
+CREATE TABLE people_details.server_key_values
+(
+  key_str character varying(200) NOT NULL,
+  value_str character varying(200) NOT NULL,
+  id serial NOT NULL,
+  created_at time with time zone NOT NULL DEFAULT now(),
+  updated_at time with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT server_key_values_pkey PRIMARY KEY (id),
+  CONSTRAINT server_key_values_key_str_value_str_key UNIQUE (key_str, value_str)
+)
+WITH (
+OIDS=FALSE
+);
+ALTER TABLE people_details.server_key_values
+OWNER TO postgres;
+
+-- Trigger: update_server_key_values_updated_time on people_details.server_key_values
+
+-- DROP TRIGGER update_server_key_values_updated_time ON people_details.server_key_values;
+
+CREATE TRIGGER update_server_key_values_updated_time
+BEFORE UPDATE
+ON people_details.server_key_values
+FOR EACH ROW
+EXECUTE PROCEDURE public.update_modified_column();

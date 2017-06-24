@@ -1,7 +1,9 @@
 /*
-* Example_1 https://scotch.io/tutorials/easy-node-authentication-setup-and-local
-* */
+ * Example_1 https://scotch.io/tutorials/easy-node-authentication-setup-and-local
+ * */
 var db = require('./config/db');
+var Server_params = require('./config/server_params');
+var squel = require('squel');
 var express = require('express');
 var morgan = require('morgan');
 var cookieParser = require('cookie-parser');
@@ -88,6 +90,27 @@ db.query("SELECT NOW()", [], function (err, res) {
     } else {
         app.listen(port, function () {
             console.log('Listening on port ' + port + ' ...');
+            setCredentials();
         })
     }
 });
+
+var setCredentials = function () {
+    var select_sql =
+        squel.select()
+            .from("people_details.server_key_values")
+            .toParam();
+    db.query(select_sql.text, select_sql.values, function (err, res) {
+        if (err) {
+            console.error('error running server_params SELECT query', err);
+            return callback(err);
+        }
+        //console.log('SELECT result ======>', JSON.stringify(res));
+        var rows = res.rows;
+        for (var i = 0; i < rows.length; i++) {
+            Server_params.set(rows[i]["key_str"], rows[i]["value_str"]);
+        }
+        //console.log("gmail_email", Server_params.get("gmail_email"));
+        //console.log("gmail_password", Server_params.get("gmail_password"));
+    });
+};

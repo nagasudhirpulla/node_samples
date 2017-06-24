@@ -1,12 +1,13 @@
 // Doesn't work if node js version < 6. Upgrade node - http://exponential.io/blog/install-or-upgrade-nodejs-on-windows/
 var nodemailer = require('nodemailer');
+var Server_params = require('../config/server_params');
 
 module.exports.sendMailViaGmail = function (fromAddress, toAddress, subjectStr, htmlStr, done) {
     var transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-            user: 'nagasud@gmail.com',
-            pass: 'pass'
+            user: Server_params.get("gmail_email"),
+            pass: Server_params.get("gmail_password")
         }
     });
 
