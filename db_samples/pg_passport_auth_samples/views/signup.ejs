@@ -1,0 +1,44 @@
+<html>
+<head>
+    <title>Sign Up Page</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+<h2>Sign Up</h2>
+
+<form action="./signup" method="post">
+    <!-- show any messages that come back with authentication -->
+    <% if (message.length > 0) { %>
+    <div style="color: red;"><%= message %></div>
+    <% } %>
+    <table>
+        <tr>
+            <td><label for="username">Username</label></td>
+            <td><input type="text" name="username" id="username"></td>
+        </tr>
+        <tr>
+            <td><label for="email_id">Email</label></td>
+            <td><input type="text" name="email_id" id="email_id"></td>
+        </tr>
+        <tr>
+            <td><label for="password">Password</label></td>
+            <td><input type="password" name="password" id="password"></td>
+        </tr>
+        <tr>
+            <td><label for="confirm_password">Confirm Password</label></td>
+            <td><input type="password" name="confirm_password" id="confirm_password"></td>
+        </tr>
+        <tr>
+            <td>
+                <button type="submit">SignUp</button>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <p><a href="./login">Login</a></p>
+            </td>
+        </tr>
+    </table>
+</form>
+</body>
+</html>

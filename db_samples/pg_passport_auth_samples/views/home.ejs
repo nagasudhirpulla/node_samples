@@ -1,0 +1,24 @@
+<html>
+<head>
+    <title>Home Page</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<h1>Welcome to Home Page
+    <% if (typeof user != "undefined") { %>
+    <%= user.username %>
+    <% } %>
+    !</h1>
+<!-- show any messages that come back with authentication -->
+<% if (message.length > 0) { %>
+<p style="color: red"><%= message %></p>
+<% } %>
+<% if(typeof user == 'undefined'){ %>
+<a href="./login">Login</a>
+<a href="./signup">SignUp</a>
+<% } else { %>
+<a href="./logout">LogOut</a>
+<% } %>
+</body>
+</html>
