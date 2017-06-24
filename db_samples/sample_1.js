@@ -32,7 +32,14 @@ pool.connect(function (err, client, done) {
 
 
 // Inserting into a table
-pool.query('INSERT INTO people_details.people_details (name) VALUES ($1)', ["sudhir"], function (err) {
+pool.query('SELECT * FROM people_details.people_details', [], function (err, res) {
     if (err) return console.log("Query Execution Error", err);
-    console.log("Query Execution Successful!");
+    console.log("Query Execution Successful!", JSON.stringify(res));
 });
+
+/*
+ // Inserting into a table
+ pool.query('INSERT INTO people_details.people_details (name) VALUES ($1)', ["sudhir"], function (err) {
+ if (err) return console.log("Query Execution Error", err);
+ console.log("Query Execution Successful!");
+ });*/

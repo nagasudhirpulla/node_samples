@@ -2,6 +2,7 @@ var router = require('express').Router();
 var passport = require('../config/passport').get();
 var async = require('async');
 var Email_Token = require('../models/email_token');
+var Email_Helper = require('../helpers/mailHelper');
 var User = require('../models/user');
 
 router.get('/login', function (req, res) {
@@ -9,11 +10,14 @@ router.get('/login', function (req, res) {
         return res.redirect('/');
     }
     //console.log("req.flash('loginMessage')", req.flash('loginMessage'));
-    res.render('login.ejs', {message: req.flash('loginMessage')});
+    res.render('login.ejs', {message: req.flash('loginMessage'), user: null});
 });
 
 router.get('/signup', function (req, res) {
-    res.render('signup.ejs', {message: req.flash('signupMessage')});
+    if (req.isAuthenticated()) {
+        return res.redirect('/');
+    }
+    res.render('signup.ejs', {message: req.flash('signupMessage'), user: null});
 });
 
 router.get('/logout', function (req, res) {
@@ -75,7 +79,6 @@ router.get('/verify_email', function (req, res, next) {
         if (prevRes["token"]["users_id"] == null) {
             return callback(new Error("No user associated with this token"));
         }
-        //stub
         User.updateById(prevRes["token"]["users_id"], {"is_email_verified": "true"}, function (err, updateRes) {
             if (err) {
                 return callback(err);
@@ -94,6 +97,37 @@ router.get('/verify_email', function (req, res, next) {
         }
         return res.render('message', {message: "Email not verified"});
     });
+});
+
+router.get('/resend_email_verification', function (req, res, next) {
+    // Get user obj and check if already verified, if verified send message that already verified
+    if (!req.user) {
+        return res.render('message', {message: "User not logged in"});
+    }
+    if (req.user.is_email_verified == true) {
+        return res.render('message', {message: "The user " + req.user.username + " is already verified via email"});
+    }
+    Email_Token.getOrCreate(req.user.id, function (err, tokenObj) {
+            if (err) {
+                return next(err);
+            }
+            // Send the email verification email
+            var userEmail = req.user.email;
+            var userName = req.user.username;
+            var fromAddress = 'info@injectsolar.com';
+            var subject = 'User Email Verification';
+            var html = "Dear " + userName + ", <br> Click the following link to verify your email <br><br> " + "http://localhost:3000/verify_email?token=" + tokenObj.token;
+            // Send user verification email to the user
+            Email_Helper.sendMailViaGmail(fromAddress, userEmail, subject, html, function (err, response) {
+                if (err) {
+                    console.error("Error in sending User verification mail", err);
+                    return res.render('message', {message: "User Verification mail couldn't be sent, send again later"});
+                }
+                console.log("Gmail send verification email response is" + JSON.stringify(response));
+                return res.render('message', {message: "User Verification mail sent, please check your email"});
+            });
+        }
+    );
 });
 
 router.post('/*', isLoggedIn, function (req, res, next) {

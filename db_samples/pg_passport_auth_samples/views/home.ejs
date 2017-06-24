@@ -18,6 +18,11 @@
 <a href="./login">Login</a>
 <a href="./signup">SignUp</a>
 <% } else { %>
+<% if(user.is_email_verified != true){ %>
+<p>Please verify your email by clicking on the verification link sent to your email</p>
+
+<p>If email not received <a href="./resend_email_verification">Resend Verification Link</a></p>
+<% } %>
 <a href="./logout">LogOut</a>
 <% } %>
 </body>
