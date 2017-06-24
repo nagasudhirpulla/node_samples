@@ -77,7 +77,7 @@ module.exports.getByUserId = function (user_id, done) {
 
 module.exports.getOrCreate = function (user_id, done) {
     var deleteOldTokens = function (callback) {
-        module.exports.deleteByUserIdBeforeNow(user_id, function (err, tokens) {
+        module.exports.deleteByUserIdBeforeNow(user_id, function (err, res) {
                 if (err) {
                     return callback(err);
                 } else {
@@ -86,8 +86,7 @@ module.exports.getOrCreate = function (user_id, done) {
             }
         );
     };
-    var getTokenObj = function (callback) {
-        var prevRes = {token: null};
+    var getTokenObj = function (prevRes, callback) {
         module.exports.getByUserId(user_id, function (err, tokens) {
                 if (err) {
                     return callback(err);
@@ -121,19 +120,19 @@ module.exports.getOrCreate = function (user_id, done) {
 };
 
 module.exports.deleteByUserIdBeforeNow = function (user_id, done) {
-    var select_sql =
+    var delete_sql =
         squel.delete()
             .from(tableName)
             .where("users_id = ?", user_id)
             .where("expires_at < now()::timestamp")
             .toParam();
-    //console.log("email token select sql", select_sql);
-    pool.query(select_sql.text, select_sql.values, function (err, res) {
+    //console.log("email token select sql", delete_sql);
+    pool.query(delete_sql.text, delete_sql.values, function (err, res) {
         if (err) {
             console.error('error running password_change_request_token delete old by users_id query', err);
             return done(err);
         }
         //console.log('SELECT result ======>', res);
-        done(null, res.rows);
+        done(null, res);
     });
 };
