@@ -3,7 +3,7 @@
  * */
 var db = require('./config/db');
 var Server_params = require('./config/server_params');
-var squel = require('squel');
+var squel = require('squel').useFlavour('postgres');
 var express = require('express');
 var morgan = require('morgan');
 var cookieParser = require('cookie-parser');

@@ -14,4 +14,4 @@ useful node js code snippets
 2. passport authentication and authorization with node-postgres and squel js -- done
 3. onConflict in squel js -- done
 4. Email token recreate option for user --done
-5. Add Forgot Password feature -- done
+5. Add Forgot Password feature
