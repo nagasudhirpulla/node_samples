@@ -190,6 +190,10 @@ router.post('/change_password', function (req, res, next) {
     });
 });
 
+router.post('/forgot_password', isLoggedIn, function (req, res, next) {
+
+});
+
 router.post('/*', isLoggedIn, function (req, res, next) {
     //console.log('caught a post request');
     next();

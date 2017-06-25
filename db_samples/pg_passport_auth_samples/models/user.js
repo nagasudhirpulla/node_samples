@@ -5,8 +5,8 @@ var tableName = "people_details.people_details";
 
 module.exports.create = function (usernameIn, passwordIn, emailIn, done) {
     var username = usernameIn.trim();
-    var email = passwordIn.trim();
-    var password = emailIn.trim();
+    var password = passwordIn.trim();
+    var email = emailIn.trim();
     var insert_sql =
         squel.insert()
             .into(tableName)
