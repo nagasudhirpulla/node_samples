@@ -21,6 +21,14 @@ router.get('/change_password', function (req, res, next) {
     res.render('change_password.ejs', {message: req.flash('changePasswordMessage'), user: req.user});
 });
 
+router.get('/forgot_password', function (req, res, next) {
+    if (req.isAuthenticated()) {
+        return res.redirect('/');
+    }
+    //console.log("req.flash('loginMessage')", req.flash('loginMessage'));
+    res.render('forgot_password.ejs', {message: req.flash('forgotPasswordMessage'), user: req.user});
+});
+
 router.get('/signup', function (req, res, next) {
     if (req.isAuthenticated()) {
         return res.redirect('/');
