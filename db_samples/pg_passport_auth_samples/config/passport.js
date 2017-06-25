@@ -33,6 +33,9 @@ passport.use('local-signup', new LocalStrategy({
                     if (req.param('password') != req.param('confirm_password')) {
                         return done(null, false, req.flash('signupMessage', "password and confirm password fields did not match"));
                     }
+                    if (!User.isPasswordFit(password)) {
+                        return done(null, false, req.flash('signupMessage', "password is weak"));
+                    }
                     // Create a new User
                     User.create(username, User.generateHash(password), userEmail, function (err, userId) {
                         if (err) {

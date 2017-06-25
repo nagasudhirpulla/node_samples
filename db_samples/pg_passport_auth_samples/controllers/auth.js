@@ -5,7 +5,7 @@ var Email_Token = require('../models/email_token');
 var Email_Helper = require('../helpers/mailHelper');
 var User = require('../models/user');
 
-router.get('/login', function (req, res) {
+router.get('/login', function (req, res, next) {
     if (req.isAuthenticated()) {
         return res.redirect('/');
     }
@@ -13,14 +13,22 @@ router.get('/login', function (req, res) {
     res.render('login.ejs', {message: req.flash('loginMessage'), user: null});
 });
 
-router.get('/signup', function (req, res) {
+router.get('/change_password', function (req, res, next) {
+    if (!req.isAuthenticated()) {
+        return res.redirect('/login');
+    }
+    //console.log("req.flash('loginMessage')", req.flash('loginMessage'));
+    res.render('change_password.ejs', {message: req.flash('changePasswordMessage'), user: req.user});
+});
+
+router.get('/signup', function (req, res, next) {
     if (req.isAuthenticated()) {
         return res.redirect('/');
     }
     res.render('signup.ejs', {message: req.flash('signupMessage'), user: null});
 });
 
-router.get('/logout', function (req, res) {
+router.get('/logout', function (req, res, next) {
     req.logout();
     res.redirect('/login');
 });
@@ -128,6 +136,50 @@ router.get('/resend_email_verification', function (req, res, next) {
             });
         }
     );
+});
+
+router.post('/change_password', function (req, res, next) {
+    // Check if user is logged in
+    if (!req.user) {
+        return res.render('message', {message: "User not logged in"});
+    }
+    // Check if required credentials are present
+    var old_password = req.body.old_password;
+    var new_password = req.body.new_password;
+    var confirm_password = req.body.confirm_password;
+    if (typeof old_password == "undefined") {
+        return res.render('change_password.ejs', {message: "Invalid old_password field", user: req.user});
+    }
+    if (typeof new_password == "undefined") {
+        return res.render('change_password.ejs', {message: "Invalid new_password field", user: req.user});
+    }
+    if (typeof confirm_password == "undefined") {
+        return res.render('change_password.ejs', {message: "Invalid confirm_password field", user: req.user});
+    }
+    // check if old password is correct
+    if (old_password != req.user.password) {
+        return res.render('change_password.ejs', {message: "Incorrect old_password field", user: req.user});
+    }
+    // check if both new_password and confirm_password match
+    if (new_password != confirm_password) {
+        return res.render('change_password.ejs', {
+            message: "new_password and confirm_password fields do not match",
+            user: req.user
+        });
+    }
+    //check if new password is fit
+    if (!User.isPasswordFit(new_password)) {
+        return res.render('change_password.ejs', {message: "new_password is weak", user: req.user});
+    }
+    User.updateById(req.user.id, {"password": User.generateHash(new_password.trim())}, function (err, updateRes) {
+        if (err) {
+            return callback(err);
+        }
+        return res.render('change_password.ejs', {
+            message: "Password changed successfully. Log in next time with new password",
+            user: req.user
+        });
+    });
 });
 
 router.post('/*', isLoggedIn, function (req, res, next) {
