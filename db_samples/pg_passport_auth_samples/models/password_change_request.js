@@ -47,7 +47,7 @@ module.exports.getByToken = function (token, done) {
             .from(tableName)
             .where("token = ?", token)
             .toParam();
-    //console.log("email token select sql", select_sql);
+    //console.log("password reset token select sql", select_sql);
     pool.query(select_sql.text, select_sql.values, function (err, res) {
         if (err) {
             console.error('error running password_change_request_token SELECT by token query', err);

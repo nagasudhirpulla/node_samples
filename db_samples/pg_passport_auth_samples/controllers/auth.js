@@ -30,6 +30,15 @@ router.get('/forgot_password', function (req, res, next) {
     res.render('forgot_password.ejs', {message: req.flash('forgotPasswordMessage'), user: req.user});
 });
 
+router.get('/reset_password', function (req, res, next) {
+    //console.log(req.flash('resetPasswordMessage'));
+    var tokenStr = "";
+    if (typeof req.query.token != "undefined" && req.query.token != null) {
+        tokenStr = req.query.token;
+    }
+    res.render('reset_password.ejs', {message: req.flash('resetPasswordMessage'), user: req.user, token: tokenStr});
+});
+
 router.get('/signup', function (req, res, next) {
     if (req.isAuthenticated()) {
         return res.redirect('/');
@@ -243,6 +252,78 @@ router.post('/forgot_password', function (req, res, next) {
     });
 });
 
+router.post('/reset_password', function (req, res, next) {
+    // Check if required credentials are present
+    var token = req.body.token;
+    if (!(typeof token != "undefined" && token != null && (token + "").trim() != "")) {
+        return res.render('message', {
+            message: "Invalid password reset token, Please click the link in the email again...",
+            user: req.user
+        });
+    }
+    var new_password = req.body.new_password;
+    var confirm_password = req.body.confirm_password;
+    if (typeof new_password == "undefined") {
+        return res.render('message', {message: "Invalid new_password field", user: req.user});
+    }
+    if (typeof confirm_password == "undefined") {
+        return res.render('message', {message: "Invalid confirm_password field", user: req.user});
+    }
+    // check if both new_password and confirm_password match
+    if (new_password != confirm_password) {
+        return res.render('message', {
+            message: "new_password and confirm_password fields do not match",
+            user: req.user
+        });
+    }
+    //check if new password is fit
+    if (!User.isPasswordFit(new_password)) {
+        return res.render('message', {message: "new_password is weak", user: req.user});
+    }
+    token = token.trim();
+    // get the token obj from token field in password_change_requests table
+    var getTokenRow = function (callback) {
+        PasswordReset_Token.getByToken(token, function (err, tokens) {
+            if (err) {
+                return callback(err);
+            }
+            if (tokens.length == 0) {
+                return callback(new Error("No password reset request with this token, please check mail and click the password reset link again."));
+            }
+            return callback(null, tokens[0]);
+        });
+    };
+    // get the user object from the token obj users_id row
+    var getUserObjFromToken = function (tokenObj, callback) {
+        var userId = tokenObj.users_id;
+        User.get(userId, function (err, users) {
+            if (err) {
+                return callback(err);
+            }
+            if (users.length == 0) {
+                return callback(new Error("No user associated with this password reset token, please click the Forgot Password link in the website again."));
+            }
+            return callback(null, users[0]);
+        });
+    };
+    async.waterfall([getTokenRow, getUserObjFromToken], function (err, userObj) {
+        if (err) {
+            console.log(err);
+            return res.render("message", {message: "Error: " + JSON.stringify(err)});
+        }
+        // Change the User password
+        User.updateById(userObj.id, {"password": User.generateHash(new_password.trim())}, function (err, updateRes) {
+            if (err) {
+                return next(err);
+            }
+            return res.render('message', {
+                message: "Password reset successfully. Log in next time with new password",
+                user: req.user
+            });
+        });
+    });
+});
+
 router.post('/*', isLoggedIn, function (req, res, next) {
     //console.log('caught a post request');
     next();
@@ -255,7 +336,6 @@ router.put('/*', isLoggedIn, function (req, res, next) {
 
 function isLoggedIn(req, res, next) {
     //console.log("reached isLoggedIn...");
-    if (req.url === '/forgot' || req.url == "/resetpassword") return next();
     if (req.isAuthenticated()) {
         return next();
     }
