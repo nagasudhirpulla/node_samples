@@ -32,7 +32,7 @@ pool.connect(function (err, client, done) {
 
 
 // Inserting into a table
-pool.query('SELECT * FROM people_details.people_details', [], function (err, res) {
+pool.query('SELECT * FROM people_details.users_verification', [], function (err, res) {
     if (err) return console.log("Query Execution Error", err);
     console.log("Query Execution Successful!", JSON.stringify(res));
 });

@@ -2,6 +2,7 @@ var router = require('express').Router();
 var passport = require('../config/passport').get();
 var async = require('async');
 var Email_Token = require('../models/email_token');
+var PasswordReset_Token = require('../models/password_change_request');
 var Email_Helper = require('../helpers/mailHelper');
 var User = require('../models/user');
 
@@ -190,8 +191,56 @@ router.post('/change_password', function (req, res, next) {
     });
 });
 
-router.post('/forgot_password', isLoggedIn, function (req, res, next) {
-
+router.post('/forgot_password', function (req, res, next) {
+    // Check if required credentials are present
+    var email_id = req.body.email_id;
+    if (typeof email_id == "undefined") {
+        return res.render('forgot_password.ejs', {message: "Invalid email Id input", user: req.user});
+    }
+    // If email not present in people_details table, say email not registered
+    var findEmailIsRegistered = function (callback) {
+        User.getByEmail(email_id, function (err, users) {
+            if (err) {
+                return callback(err);
+            }
+            if (users.length == 0) {
+                return callback(new Error("No user registered with this email id"));
+            }
+            return callback(null, users[0]);
+        });
+    };
+    // If email registered get the token from password_change_requests table using user_id attribute.
+    // If token does not exist, create a new token, if token is expired, delete the old one and create a new one
+    var getUserPasswordResetTokenRow = function (userObj, callback) {
+        PasswordReset_Token.getOrCreate(userObj.id, function (err, tokenObj) {
+            if (err) {
+                return callback(err);
+            }
+            if (tokenObj == null) {
+                return callback(new Error("Could not create password reset link please try again"));
+            }
+            return callback(null, {user: userObj, tokenObj: tokenObj});
+        });
+    };
+    async.waterfall([findEmailIsRegistered, getUserPasswordResetTokenRow], function (err, prevRes) {
+        if (err) {
+            return res.render("forgot_password", {message: "Error: " + JSON.stringify(err)});
+        }
+        // Send the password reset link email
+        var userEmail = prevRes.user.email;
+        var userName = prevRes.user.username;
+        var fromAddress = 'info@injectsolar.com';
+        var subject = 'Password Reset Link';
+        var html = "Dear " + userName + ", <br> Click the following link to reset your accunt password <br><br> " + "http://localhost:3000/reset_password?token=" + prevRes.tokenObj.token;
+        Email_Helper.sendMailViaGmail(fromAddress, userEmail, subject, html, function (err, response) {
+            if (err) {
+                console.error("Error in sending Password Reset Link email", err);
+                return res.render('forgot_password', {message: "Password Reset email couldn't be sent, please send again"});
+            }
+            console.log("Gmail send password reset email response is" + JSON.stringify(response));
+            return res.render('message', {message: "Password Reset mail sent, please check your email"});
+        });
+    });
 });
 
 router.post('/*', isLoggedIn, function (req, res, next) {
