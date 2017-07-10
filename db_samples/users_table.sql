@@ -45,6 +45,7 @@ CREATE TABLE people_details.people_details
   id                SERIAL                   NOT NULL,
   password          CHARACTER VARYING(100)   NOT NULL,
   username          CHARACTER VARYING(100)   NOT NULL,
+  role              INTEGER DEFAULT 0        NOT NULL,
   is_email_verified BOOLEAN                  NOT NULL DEFAULT FALSE,
   created_at        TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   updated_at        TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
